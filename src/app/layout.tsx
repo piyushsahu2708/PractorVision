@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
+import { ClientProviders } from './client-providers';
 
 export const metadata: Metadata = {
   title: 'ProctorVision',
@@ -23,7 +24,7 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased h-full">
-        {children}
+        <ClientProviders>{children}</ClientProviders>
         <Toaster />
       </body>
     </html>
