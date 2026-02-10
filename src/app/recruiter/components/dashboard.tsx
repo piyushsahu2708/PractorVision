@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { useState, useTransition } from 'react';
 import { useProctoring } from '@/app/(proctoring)/proctoring-context';
 import {
@@ -30,8 +29,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { handleGenerateSummary } from '../actions';
-import { Bot, Loader2, Sparkles, Trash2 } from 'lucide-react';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Bot, Loader2, Sparkles, Trash2, Video } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function Dashboard() {
@@ -40,8 +38,6 @@ export default function Dashboard() {
   const [summary, setSummary] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  const cameraFeedImage = PlaceHolderImages.find(img => img.id === 'candidate-feed');
-
   const onGenerateSummary = () => {
     startTransition(async () => {
       const violationDescriptions = violations.map(v => v.type);
@@ -78,18 +74,10 @@ export default function Dashboard() {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="bg-black rounded-b-lg overflow-hidden p-0">
-             {cameraFeedImage && (
-                  <Image
-                    src={cameraFeedImage.imageUrl}
-                    alt={cameraFeedImage.description}
-                    width={1280}
-                    height={720}
-                    className="object-cover w-full h-full"
-                    data-ai-hint={cameraFeedImage.imageHint}
-                    priority
-                  />
-                )}
+          <CardContent className="bg-black rounded-b-lg overflow-hidden p-0 flex items-center justify-center aspect-video">
+             <div className="w-full h-full flex items-center justify-center bg-black text-muted-foreground">
+                <Video className="w-16 h-16" />
+             </div>
           </CardContent>
         </Card>
       </div>

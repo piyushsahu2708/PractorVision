@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import Image from 'next/image';
+import { useState, useEffect, useRef } from 'react';
 import {
   Card,
   CardContent,
@@ -19,7 +18,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useProctoring } from '@/app/(proctoring)/proctoring-context';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { ViolationType } from '@/lib/types';
 import {
   Move,
@@ -30,6 +28,8 @@ import {
   Monitor,
 } from 'lucide-react';
 import { Logo } from '@/components/logo';
+import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 const violationOptions: { type: ViolationType; icon: React.ElementType, description: string }[] = [
   { type: 'Face Absence', icon: UserX, description: 'You left the camera view.' },
@@ -42,7 +42,32 @@ const violationOptions: { type: ViolationType; icon: React.ElementType, descript
 export default function CandidatePage() {
   const { candidate, addViolation } = useProctoring();
   const [warning, setWarning] = useState<{ title: string; description: string } | null>(null);
-  const cameraFeedImage = PlaceHolderImages.find(img => img.id === 'candidate-feed');
+  const [hasCameraPermission, setHasCameraPermission] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const getCameraPermission = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        setHasCameraPermission(true);
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (error) {
+        console.error('Error accessing camera:', error);
+        setHasCameraPermission(false);
+        toast({
+          variant: 'destructive',
+          title: 'Camera Access Denied',
+          description: 'Please enable camera permissions in your browser settings to use this app.',
+        });
+      }
+    };
+
+    getCameraPermission();
+  }, [toast]);
 
   const handleViolation = (type: ViolationType, description: string) => {
     addViolation(type);
@@ -76,19 +101,17 @@ export default function CandidatePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex-1 flex items-center justify-center bg-black rounded-b-lg overflow-hidden">
-                {cameraFeedImage && (
-                  <Image
-                    src={cameraFeedImage.imageUrl}
-                    alt={cameraFeedImage.description}
-                    width={1280}
-                    height={720}
-                    className="object-cover w-full h-full"
-                    data-ai-hint={cameraFeedImage.imageHint}
-                    priority
-                  />
-                )}
+                <video ref={videoRef} className="w-full aspect-video" autoPlay muted />
               </CardContent>
             </Card>
+            { !hasCameraPermission && (
+                <Alert variant="destructive">
+                  <AlertTitle>Camera Access Required</AlertTitle>
+                  <AlertDescription>
+                    Please allow camera access in your browser settings to continue. The interview cannot proceed without it.
+                  </AlertDescription>
+                </Alert>
+            )}
           </div>
 
           <div className="lg:col-span-1">
